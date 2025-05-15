@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Calculator for Child and Adolescent Psychiatry Forms</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="title-panel">
+            <h1>Web Calculator for Child and Adolescent Psychiatry Forms</h1>
+        </div>
+
+        <!-- Intro Screen -->
+        <div id="intro_screen">
+            <div class="intro-text">
+                <p>This web application</p>
+                <p>   - Calculates and displays results as a <strong>table</strong> and <strong>text summary</strong> based on your responses.</p>
+                <p>   - Does <strong>NOT</strong> save any responses. (Numbers selected below are <strong>NOT</strong> stored or sent anywhere.)</p>
+                <p>   - Uses vanilla JavaScript and you can view the code <a href="https://github.com/yourusername/psychiatry-form-calculator" target="_blank">HERE</a>.</p>
+                <p>If you have any suggestions or notice any errors, please contact: hanseul0618@gmail.com</p>
+            </div>
+            <h2>Please select a form to begin.</h2>
+            <div class="button-container">
+                <button id="btn_scared_child" class="big-action-button">SCARED - Child</button>
+                <button id="btn_scared_parent" class="big-action-button">SCARED - Parent</button>
+                <button id="btn_vand_parent" class="big-action-button">Vanderbilt - Parent</button>
+                <button id="btn_vand_teacher" class="big-action-button">Vanderbilt - Teacher</button>
+            </div>
+        </div>
+
+        <!-- Question Screen (Hidden initially) -->
+        <div id="question_screen" class="hidden">
+            <h3 id="survey_title"></h3>
+            <div id="survey_instructions" class="survey-instructions"></div>
+            <div id="questions_ui"></div>
+            <button id="to_review" class="big-action-button">Next</button>
+        </div>
+
+        <!-- Review Screen (Hidden initially) -->
+        <div id="review_screen" class="hidden">
+            <h3 id="review_title"></h3>
+            <h4>Please scroll down and review your responses.</h4>
+            <div id="review_table_ui" class="review-table-container"></div>
+            <div class="button-container">
+                <button id="back" class="big-action-button secondary">Back (Revise Responses)</button>
+                <button id="see_results" class="big-action-button">See Results</button>
+            </div>
+        </div>
+
+        <!-- Results Screen (Hidden initially) -->
+        <div id="results_screen" class="hidden">
+            <h3 class="bold-header">Results</h3>
+            <div id="results_table" style="max-width:800px; margin:0;"></div>
+            <div id="text_summary" style="max-width:800px; margin:10px 0;"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
