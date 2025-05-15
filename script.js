@@ -1,4 +1,496 @@
-/**
+// Result screen functions
+function generateResultsTable() {
+    if (state.selectedSurvey.includes("SCARED")) {
+        generateScaredResultsTable();
+    } else if (state.selectedSurvey === "Vanderbilt - Parent") {
+        generateVanderbiltParentResultsTable();
+    } else if (state.selectedSurvey === "Vanderbilt - Teacher") {
+        generateVanderbiltTeacherResultsTable();
+    }
+}
+
+function generateScaredResultsTable() {
+    // Calculate scores
+    const scores = calculateScaredScores(state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Associated Diagnosis', 'Result', 'Patient Score', 'Cutoff'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const diagnoses = [
+        { key: 'total', label: 'Anxiety disorder', cutoff: '>= 25' },
+        { key: 'panic', label: 'Panic disorder or Significant somatic symptoms', cutoff: '>= 7' },
+        { key: 'gad', label: 'Generalized anxiety disorder', cutoff: '>= 9' },
+        { key: 'separation', label: 'Separation anxiety disorder', cutoff: '>= 5' },
+        { key: 'social', label: 'Social anxiety disorder', cutoff: '>= 8' },
+        { key: 'school', label: 'Significant school avoidance', cutoff: '>= 3' }
+    ];
+    
+    diagnoses.forEach(diag => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = diag.label;
+        
+        const resultCell = document.createElement('td');
+        resultCell.innerHTML = scores.verdict[diag.key];
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = scores.scores[diag.key];
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = diag.cutoff;
+        
+        row.appendChild(labelCell);
+        row.appendChild(resultCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('div');
+    summary.className = 'text-summary';
+    
+    let summaryHTML = `
+        <div class="text-summary-heading">---- Text Summary ----</div>
+        <p>SCARED (${state.selectedSurvey}) results were as follows:</p>
+        <p>Anxiety disorder ------------------------------------------- ${scores.verdict.total}, Score ${scores.scores.total}  **cutoff >=25</p>
+        <p>Panic disorder or Significant somatic symptoms -- ${scores.verdict.panic}, Score ${scores.scores.panic}  **cutoff >=7</p>
+        <p>Generalized anxiety disorder -------------------------- ${scores.verdict.gad}, Score ${scores.scores.gad}  **cutoff >=9</p>
+        <p>Separation anxiety disorder ---------------------------- ${scores.verdict.separation}, Score ${scores.scores.separation}  **cutoff >=5</p>
+        <p>Social anxiety disorder ---------------------------------- ${scores.verdict.social}, Score ${scores.scores.social}  **cutoff >=8</p>
+        <p>Significant school avoidance -------------------------- ${scores.verdict.school}, Score ${scores.scores.school}  **cutoff >=3</p>
+    `;
+    
+    summary.innerHTML = summaryHTML;
+    elements.textSummary.innerHTML = '';
+    elements.textSummary.appendChild(summary);
+}
+
+function generateVanderbiltParentResultsTable() {
+    // Calculate scores
+    const results = calculateVanderbiltScores(state.selectedSurvey, state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Category', 'Patient Count/Score', 'Cutoff', 'Calculation'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const categories = [
+        { label: 'ADHD - Inattention', score: results.Inattentive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q1–9' },
+        { label: 'ADHD - Hyperactivity/Impulsivity', score: results.Hyperactive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q10–18' },
+        { label: 'ADHD Total Symptom Score', score: results.total_symptom_score, cutoff: '', calc: 'Sum of Q1–18' },
+        { label: 'Oppositional-Defiant Disorder', score: results.ODD.n, cutoff: '\u2265 4', calc: 'Total number of questions scored 2 or 3 in Q19–26' },
+        { label: 'Conduct Disorder', score: results.Conduct.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q27–40' },
+        { label: 'Anxiety/Depression', score: results.AnxietyDep.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q41–47' },
+        { label: 'Performance', score: results.perf_count, cutoff: '\u2265 1', calc: 'Total number of questions scored 4 or 5 in Q48–55' },
+        { label: 'Average Performance Score', score: results.perf_avg, cutoff: '', calc: 'Average of Q48–55' }
+    ];
+    
+    categories.forEach(cat => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = cat.label;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = cat.score;
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = cat.cutoff;
+        
+        const calcCell = document.createElement('td');
+        calcCell.textContent = cat.calc;
+        
+        row.appendChild(labelCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        row.appendChild(calcCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('div');
+    summary.className = 'text-summary';
+    
+    let summaryHTML = `
+        <div class="text-summary-heading">---- Text Summary ----</div>
+        <p>Vanderbilt (Parent) results were as follows:</p>
+        <p>ADHD, Inattentive subtype: ${results.Inattentive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Inattentive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, Hyperactive/Impulsive subtype: ${results.Hyperactive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Hyperactive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, combined type: ${results.Inattentive.pos && results.Hyperactive.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'}</p>
+        <p>ODD: ${results.ODD.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.ODD.n}/8, cutoff ≥ 4)</p>
+        <p>Conduct disorder: ${results.Conduct.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.Conduct.n}/14, cutoff ≥ 3)</p>
+        <p>Anxiety/Depression: ${results.AnxietyDep.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.AnxietyDep.n}/7, cutoff ≥ 3)</p>
+        <p>-- Performance (${results.perf_count}/8, cutoff ≥ 1)</p>
+        <p>-- Total ADHD Symptom Score: ${results.total_symptom_score}. Average Performance Score: ${results.perf_avg}.</p>
+    `;
+    
+    summary.innerHTML = summaryHTML;
+    elements.textSummary.innerHTML = '';
+    elements.textSummary.appendChild(summary);
+}
+
+function generateVanderbiltTeacherResultsTable() {
+    // Calculate scores
+    const results = calculateVanderbiltScores(state.selectedSurvey, state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Category', 'Patient Count/Score', 'Cutoff', 'Calculation'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const categories = [
+        { label: 'ADHD - Inattention', score: results.Inattentive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q1–9' },
+        { label: 'ADHD - Hyperactivity/Impulsivity', score: results.Hyperactive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q10–18' },
+        { label: 'ADHD Total Symptom Score', score: results.total_symptom_score, cutoff: '', calc: 'Sum of Q1–18' },
+        { label: 'ODD/Conduct Disorder', score: results.ODD_Conduct.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q19–28' },
+        { label: 'Anxiety/Depression', score: results.AnxietyDep.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q29–35' },
+        { label: 'Performance', score: results.perf_count, cutoff: '\u2265 1', calc: 'Total number of questions scored 4 or 5 in Q36–43' },
+        { label: 'Average Performance Score', score: results.perf_avg, cutoff: '', calc: 'Average of Q36–43' }
+    ];
+    
+    categories.forEach(cat => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = cat.label;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = cat.score;
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = cat.cutoff;
+        
+        const calcCell = document.createElement('td');
+        calcCell.textContent = cat.calc;
+        
+        row.appendChild(labelCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        row.appendChild(calcCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('div');
+    summary.className = 'text-summary';
+    
+    let summaryHTML = `
+        <div class="text-summary-heading">---- Text Summary ----</div>
+        <p>Vanderbilt (Teacher) results were as follows:</p>
+        <p>ADHD, Inattentive subtype: ${results.Inattentive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Inattentive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, Hyperactive/Impulsive subtype: ${results.Hyperactive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Hyperactive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, combined type: ${results.Inattentive.pos && results.Hyperactive.pos ? '<b style="color:red">Positive</b>' : 'Negative'}</p>
+        <p>ODD/Conduct Disorder: ${results.ODD_Conduct.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.ODD_Conduct.n}/10, cutoff ≥ 3)</p>
+        <p>Anxiety/Depression: ${results.AnxietyDep.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.AnxietyDep.n}/7, cutoff ≥ 3)</p>
+        <p>-- Performance (${results.perf_count}/8, cutoff ≥ 1)</p>
+        <p>-- Total ADHD Symptom Score: ${results.total_symptom_score}. Average Performance Score: ${results.perf_avg}.</p>
+    `;
+    
+    summary.innerHTML = summaryHTML;
+    elements.textSummary.innerHTML = '';
+    elements.textSummary.appendChild(summary);
+}
+function generateResultsTable() {
+    if (state.selectedSurvey.includes("SCARED")) {
+        generateScaredResultsTable();
+    } else if (state.selectedSurvey === "Vanderbilt - Parent") {
+        generateVanderbiltParentResultsTable();
+    } else if (state.selectedSurvey === "Vanderbilt - Teacher") {
+        generateVanderbiltTeacherResultsTable();
+    }
+}
+
+function generateScaredResultsTable() {
+    // Calculate scores
+    const scores = calculateScaredScores(state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Associated Diagnosis', 'Result', 'Patient Score', 'Cutoff'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const diagnoses = [
+        { key: 'total', label: 'Anxiety disorder', cutoff: '>= 25' },
+        { key: 'panic', label: 'Panic disorder or Significant somatic symptoms', cutoff: '>= 7' },
+        { key: 'gad', label: 'Generalized anxiety disorder', cutoff: '>= 9' },
+        { key: 'separation', label: 'Separation anxiety disorder', cutoff: '>= 5' },
+        { key: 'social', label: 'Social anxiety disorder', cutoff: '>= 8' },
+        { key: 'school', label: 'Significant school avoidance', cutoff: '>= 3' }
+    ];
+    
+    diagnoses.forEach(diag => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = diag.label;
+        
+        const resultCell = document.createElement('td');
+        resultCell.innerHTML = scores.verdict[diag.key];
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = scores.scores[diag.key];
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = diag.cutoff;
+        
+        row.appendChild(labelCell);
+        row.appendChild(resultCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('div');
+    summary.className = 'text-summary';
+    
+    let summaryHTML = `
+        <div class="text-summary-heading">---- Text Summary ----</div>
+        <p>SCARED (${state.selectedSurvey}) results were as follows:</p>
+        <p>Anxiety disorder ------------------------------------------- ${scores.verdict.total}, Score ${scores.scores.total}  **cutoff >=25</p>
+        <p>Panic disorder or Significant somatic symptoms -- ${scores.verdict.panic}, Score ${scores.scores.panic}  **cutoff >=7</p>
+        <p>Generalized anxiety disorder -------------------------- ${scores.verdict.gad}, Score ${scores.scores.gad}  **cutoff >=9</p>
+        <p>Separation anxiety disorder ---------------------------- ${scores.verdict.separation}, Score ${scores.scores.separation}  **cutoff >=5</p>
+        <p>Social anxiety disorder ---------------------------------- ${scores.verdict.social}, Score ${scores.scores.social}  **cutoff >=8</p>
+        <p>Significant school avoidance -------------------------- ${scores.verdict.school}, Score ${scores.scores.school}  **cutoff >=3</p>
+    `;
+    
+    summary.innerHTML = summaryHTML;
+    elements.textSummary.innerHTML = '';
+    elements.textSummary.appendChild(summary);
+}
+
+function generateVanderbiltParentResultsTable() {
+    // Calculate scores
+    const results = calculateVanderbiltScores(state.selectedSurvey, state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Category', 'Patient Count/Score', 'Cutoff', 'Calculation'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const categories = [
+        { label: 'ADHD - Inattention', score: results.Inattentive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q1–9' },
+        { label: 'ADHD - Hyperactivity/Impulsivity', score: results.Hyperactive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q10–18' },
+        { label: 'ADHD Total Symptom Score', score: results.total_symptom_score, cutoff: '', calc: 'Sum of Q1–18' },
+        { label: 'Oppositional-Defiant Disorder', score: results.ODD.n, cutoff: '\u2265 4', calc: 'Total number of questions scored 2 or 3 in Q19–26' },
+        { label: 'Conduct Disorder', score: results.Conduct.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q27–40' },
+        { label: 'Anxiety/Depression', score: results.AnxietyDep.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q41–47' },
+        { label: 'Performance', score: results.perf_count, cutoff: '\u2265 1', calc: 'Total number of questions scored 4 or 5 in Q48–55' },
+        { label: 'Average Performance Score', score: results.perf_avg, cutoff: '', calc: 'Average of Q48–55' }
+    ];
+    
+    categories.forEach(cat => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = cat.label;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = cat.score;
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = cat.cutoff;
+        
+        const calcCell = document.createElement('td');
+        calcCell.textContent = cat.calc;
+        
+        row.appendChild(labelCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        row.appendChild(calcCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('div');
+    summary.className = 'text-summary';
+    
+    let summaryHTML = `
+        <div class="text-summary-heading">---- Text Summary ----</div>
+        <p>Vanderbilt (Parent) results were as follows:</p>
+        <p>ADHD, Inattentive subtype: ${results.Inattentive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Inattentive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, Hyperactive/Impulsive subtype: ${results.Hyperactive.pos ? '<b style="color:red">Positive</b>' : 'Negative'} (${results.Hyperactive.n}/9, cutoff ≥ 6)</p>
+        <p>ADHD, combined type: ${results.Inattentive.pos && results.Hyperactive.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'}</p>
+        <p>ODD: ${results.ODD.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.ODD.n}/8, cutoff ≥ 4)</p>
+        <p>Conduct disorder: ${results.Conduct.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.Conduct.n}/14, cutoff ≥ 3)</p>
+        <p>Anxiety/Depression: ${results.AnxietyDep.pos ? '<b style="color:red">Positive</b> screening' : 'Negative screening'} (${results.AnxietyDep.n}/7, cutoff ≥ 3)</p>
+        <p>-- Performance (${results.perf_count}/8, cutoff ≥ 1)</p>
+        <p>-- Total ADHD Symptom Score: ${results.total_symptom_score}. Average Performance Score: ${results.perf_avg}.</p>
+    `;
+    
+    summary.innerHTML = summaryHTML;
+    elements.textSummary.innerHTML = '';
+    elements.textSummary.appendChild(summary);
+}
+
+function generateVanderbiltTeacherResultsTable() {
+    // Calculate scores
+    const results = calculateVanderbiltScores(state.selectedSurvey, state.answers);
+    
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Category', 'Patient Count/Score', 'Cutoff', 'Calculation'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    const categories = [
+        { label: 'ADHD - Inattention', score: results.Inattentive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q1–9' },
+        { label: 'ADHD - Hyperactivity/Impulsivity', score: results.Hyperactive.n, cutoff: '\u2265 6', calc: 'Total number of questions scored 2 or 3 in Q10–18' },
+        { label: 'ADHD Total Symptom Score', score: results.total_symptom_score, cutoff: '', calc: 'Sum of Q1–18' },
+        { label: 'ODD/Conduct Disorder', score: results.ODD_Conduct.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q19–28' },
+        { label: 'Anxiety/Depression', score: results.AnxietyDep.n, cutoff: '\u2265 3', calc: 'Total number of questions scored 2 or 3 in Q29–35' },
+        { label: 'Performance', score: results.perf_count, cutoff: '\u2265 1', calc: 'Total number of questions scored 4 or 5 in Q36–43' },
+        { label: 'Average Performance Score', score: results.perf_avg, cutoff: '', calc: 'Average of Q36–43' }
+    ];
+    
+    categories.forEach(cat => {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = cat.label;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = cat.score;
+        
+        const cutoffCell = document.createElement('td');
+        cutoffCell.textContent = cat.cutoff;
+        
+        const calcCell = document.createElement('td');
+        calcCell.textContent = cat.calc;
+        
+        row.appendChild(labelCell);
+        row.appendChild(scoreCell);
+        row.appendChild(cutoffCell);
+        row.appendChild(calcCell);
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    elements.resultsTable.innerHTML = '';
+    elements.resultsTable.appendChild(table);
+    
+    // Create text summary
+    const summary = document.createElement('/**
  * Web Calculator for Child and Adolescent Psychiatry Forms
  * A client-side implementation of the R Shiny app for psychiatric form scoring
  */
@@ -693,9 +1185,102 @@ function calculateVanderbiltScores(survey, answers) {
     
     return null;
 }
-
-// 버튼 클릭 시 설문 선택 함수 연결
-elements.btnScaredChild.addEventListener('click', () => selectSurvey("SCARED - Child"));
-elements.btnScaredParent.addEventListener('click', () => selectSurvey("SCARED - Parent"));
-elements.btnVandParent.addEventListener('click', () => selectSurvey("Vanderbilt - Parent"));
-elements.btnVandTeacher.addEventListener('click', () => selectSurvey("Vanderbilt - Teacher"));
+        const hyper = hyperIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const hyperPos = hyper >= 6 && perfFlag;
+        
+        // Combined
+        const combinedPos = inattPos && hyperPos;
+        
+        // ODD: Questions 19-26
+        const oddIdx = Array.from({length: 8}, (_, i) => i + 18); // 18-25
+        const odd = oddIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const oddPos = odd >= 4 && perfFlag;
+        
+        // Conduct: Questions 27-40
+        const conductIdx = Array.from({length: 14}, (_, i) => i + 26); // 26-39
+        const conduct = conductIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const conductPos = conduct >= 3 && perfFlag;
+        
+        // Anxiety/Depression: Questions 41-47
+        const anxdepIdx = Array.from({length: 7}, (_, i) => i + 40); // 40-46
+        const anxdep = anxdepIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const anxdepPos = anxdep >= 3 && perfFlag;
+        
+        // Total scores
+        const totalSymptomScore = [...inattIdx, ...hyperIdx].reduce((sum, idx) => {
+            return sum + (numericAnswers[idx] || 0);
+        }, 0);
+        
+        const perfCount = perfIdx.filter(idx => numericAnswers[idx] === 4 || numericAnswers[idx] === 5).length;
+        
+        const perfValues = perfIdx.map(idx => numericAnswers[idx] || 0);
+        const perfAvg = perfValues.length > 0 ? 
+            (perfValues.reduce((sum, val) => sum + val, 0) / perfValues.length).toFixed(2) : 0;
+        
+        return {
+            Inattentive: { pos: inattPos, n: inatt },
+            Hyperactive: { pos: hyperPos, n: hyper },
+            Combined: { pos: combinedPos },
+            ODD: { pos: oddPos, n: odd },
+            Conduct: { pos: conductPos, n: conduct },
+            AnxietyDep: { pos: anxdepPos, n: anxdep },
+            PerfFlag: perfFlag,
+            total_symptom_score: totalSymptomScore,
+            perf_count: perfCount,
+            perf_avg: perfAvg
+        };
+    } 
+    else if (survey === "Vanderbilt - Teacher") {
+        // Define criteria
+        const perfIdx = Array.from({length: 8}, (_, i) => i + 35); // 36-43
+        const perfFlag = perfIdx.some(idx => numericAnswers[idx] === 4 || numericAnswers[idx] === 5);
+        
+        // Inattention: Questions 1-9
+        const inattIdx = Array.from({length: 9}, (_, i) => i); // 0-8
+        const inatt = inattIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const inattPos = inatt >= 6 && perfFlag;
+        
+        // Hyperactivity: Questions 10-18
+        const hyperIdx = Array.from({length: 9}, (_, i) => i + 9); // 9-17
+        const hyper = hyperIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const hyperPos = hyper >= 6 && perfFlag;
+        
+        // Combined
+        const combinedPos = inattPos && hyperPos;
+        
+        // ODD/Conduct: Questions 19-28
+        const oddConductIdx = Array.from({length: 10}, (_, i) => i + 18); // 18-27
+        const oddConduct = oddConductIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const oddConductPos = oddConduct >= 3 && perfFlag;
+        
+        // Anxiety/Depression: Questions 29-35
+        const anxdepIdx = Array.from({length: 7}, (_, i) => i + 28); // 28-34
+        const anxdep = anxdepIdx.filter(idx => numericAnswers[idx] === 2 || numericAnswers[idx] === 3).length;
+        const anxdepPos = anxdep >= 3 && perfFlag;
+        
+        // Total scores
+        const totalSymptomScore = [...inattIdx, ...hyperIdx].reduce((sum, idx) => {
+            return sum + (numericAnswers[idx] || 0);
+        }, 0);
+        
+        const perfCount = perfIdx.filter(idx => numericAnswers[idx] === 4 || numericAnswers[idx] === 5).length;
+        
+        const perfValues = perfIdx.map(idx => numericAnswers[idx] || 0);
+        const perfAvg = perfValues.length > 0 ? 
+            (perfValues.reduce((sum, val) => sum + val, 0) / perfValues.length).toFixed(2) : 0;
+        
+        return {
+            Inattentive: { pos: inattPos, n: inatt },
+            Hyperactive: { pos: hyperPos, n: hyper },
+            Combined: { pos: combinedPos },
+            ODD_Conduct: { pos: oddConductPos, n: oddConduct },
+            AnxietyDep: { pos: anxdepPos, n: anxdep },
+            PerfFlag: perfFlag,
+            total_symptom_score: totalSymptomScore,
+            perf_count: perfCount,
+            perf_avg: perfAvg
+        };
+    }
+    
+    return null;
+}
