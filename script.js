@@ -693,3 +693,9 @@ function calculateVanderbiltScores(survey, answers) {
     
     return null;
 }
+
+// 버튼 클릭 시 설문 선택 함수 연결
+elements.btnScaredChild.addEventListener('click', () => selectSurvey("SCARED - Child"));
+elements.btnScaredParent.addEventListener('click', () => selectSurvey("SCARED - Parent"));
+elements.btnVandParent.addEventListener('click', () => selectSurvey("Vanderbilt - Parent"));
+elements.btnVandTeacher.addEventListener('click', () => selectSurvey("Vanderbilt - Teacher"));
